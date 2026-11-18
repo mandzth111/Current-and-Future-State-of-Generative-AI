@@ -23,7 +23,7 @@
 - **Rejected: keyword-rule simulation.** Claude's first prototype extracted facts with keyword rules. I rejected that approach because rules would look like a working AI feature while really being brittle pattern matching, and they misread members as meters. A Wizard-of-Oz version is more honest about what is simulated.
 - **Deferred: connecting a live model now.** A reviewer recommended analyzing real documents. I chose to fix trust in the review step first, because the reviewers' evidence showed a copied profile could contradict itself, and a live model would only make that riskier.
 - **Scope choices from my capstone research:** the target profile (distribution co-ops of 10,000 to 80,000 meters that run their own SCADA) and the five facts come from my interviews and dataset, not from AI.
-- [ADD ONE MORE IN YOUR OWN WORDS: for example, a wording or design change you made after reading Claude's draft.]
+- **Revised: the review step.** Claude's draft let Copy work without review; I kept the lock because my sponsor's team would paste rows straight into their account list.
 
 ## Verification
 
