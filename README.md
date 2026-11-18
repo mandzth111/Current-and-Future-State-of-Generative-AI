@@ -6,7 +6,7 @@ A web tool that turns public text about one electric utility into a draft accoun
 
 ## Open the prototype
 
-- **Live prototype (Replit):** [ADD PUBLISHED REPLIT LINK]
+- **Live prototype (Replit):** https://uaq-revisionzip--aschell3.replit.app
 - **Backup link (GitHub Pages):** https://mandzth111.github.io/Current-and-Future-State-of-Generative-AI/
 - **Or run it yourself:** download `index.html` and open it in any browser. It is a single file with no server, sign-in, or API key.
 
