@@ -24,33 +24,47 @@
           width: 24px; height: 24px; text-align: center; font-size: .85rem; line-height: 24px;
           margin-right: 6px; }
   .hint { color: var(--muted); font-size: .9rem; margin: 0 0 10px; }
-  textarea { width: 100%; min-height: 180px; padding: 10px; border: 1px solid var(--line);
+  .start { background: #f3f6fb; border-radius: 8px; padding: 10px 12px; font-size: .92rem; margin-bottom: 10px; }
+  textarea { width: 100%; padding: 10px; border: 1px solid var(--line);
              border-radius: 8px; font: inherit; resize: vertical; }
+  #source { min-height: 180px; }
   .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
   button { font: inherit; border-radius: 8px; padding: 8px 14px; cursor: pointer;
            border: 1px solid var(--line); background: #fff; color: var(--ink); }
-  button:disabled { opacity: .6; cursor: wait; }
+  button:disabled { opacity: .55; cursor: not-allowed; }
   button.primary { background: var(--navy); color: #fff; border-color: var(--navy); font-weight: 600; }
   button.small { font-size: .85rem; padding: 5px 10px; }
+  button.confirm.on { background: var(--ok); color: #fff; border-color: var(--ok); }
+  button.reject.on { background: var(--bad); color: #fff; border-color: var(--bad); }
   .msg { margin-top: 10px; padding: 10px 12px; border-radius: 8px; display: none; }
   .msg.error { display: block; background: #fdecea; color: var(--bad); }
   .msg.note { display: block; background: #fff6e0; color: var(--warn); }
   .banner { background: #eef2f8; border-left: 4px solid var(--info); padding: 10px 12px;
             border-radius: 6px; font-size: .9rem; margin-bottom: 14px; }
-  .fit { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; margin-bottom: 14px; }
+  .fit { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; margin-bottom: 4px; }
   .badge { font-weight: 700; padding: 4px 12px; border-radius: 999px; color: #fff; }
   .Match { background: var(--ok); } .Partial { background: var(--warn); }
   .No-match { background: var(--bad); } .Not-enough-information { background: var(--muted); }
   .rule { color: var(--muted); font-size: .92rem; }
+  .changed { color: var(--warn); font-size: .85rem; font-weight: 600; margin-bottom: 10px; min-height: 1em; }
   .field { border-top: 1px solid var(--line); padding: 12px 0; }
-  .field label { font-weight: 600; display: block; margin-bottom: 4px; }
-  .field input { width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
-  .field input.missing { color: var(--muted); font-style: italic; }
+  .fhead { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .fhead label { font-weight: 600; }
+  .tag { font-size: .75rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: #eef2f8; color: var(--info); }
+  .tag.edited { background: #fff3d6; color: var(--warn); }
+  .tag.rejected { background: #fdecea; color: var(--bad); }
+  .tag.confirmed { background: #e3f3ea; color: var(--ok); }
+  .field textarea { min-height: 2.6em; padding: 7px 9px; border-radius: 6px; }
+  .field textarea.missing { color: var(--muted); font-style: italic; }
+  .field textarea.rejected { text-decoration: line-through; color: var(--muted); background: #f7f7f9; }
   .quote { margin: 6px 0 0; padding: 6px 10px; border-left: 3px solid var(--gold);
            background: #faf7ee; font-size: .9rem; color: #3b3f47; }
   .quote.none { border-left-color: var(--line); background: #f4f5f7; color: var(--muted); }
-  .flag { font-size: .8rem; color: var(--warn); margin-top: 4px; }
+  .flag { font-size: .85rem; color: var(--warn); margin-top: 6px; }
+  .actions { display: flex; gap: 6px; margin-top: 8px; }
   #results { display: none; }
+  .progress { font-weight: 600; }
+  .progress.done { color: var(--ok); }
   footer { color: var(--muted); font-size: .85rem; text-align: center; padding: 8px 16px 24px; }
 </style>
 </head>
@@ -63,9 +77,11 @@
 <main>
   <section class="card">
     <h2><span class="step">1</span>Paste public text about one utility</h2>
-    <p class="hint">Use an annual report, board summary, news page, or job posting. Public documents only, never interview notes or anything under NDA. Or load a sample:</p>
+    <div class="start"><strong>New here?</strong> Click <em>Sample: co-op annual report</em>, then <strong>Analyze</strong>. You will review five facts against their source sentences, confirm or reject each one, and copy the reviewed row into your account list.</div>
+    <p class="hint">Use an annual report, board summary, news page, or job posting. Public documents only, never interview notes or anything under NDA. Prepared AI results exist for these four samples:</p>
     <div class="row">
       <button class="small" data-sample="report">Sample: co-op annual report</button>
+      <button class="small" data-sample="posting">Sample: co-op job posting</button>
       <button class="small" data-sample="newsletter">Sample: member newsletter</button>
       <button class="small" data-sample="water">Sample: water authority page</button>
     </div>
@@ -78,19 +94,21 @@
   </section>
 
   <section class="card" id="results" aria-live="polite">
-    <h2><span class="step">2</span>Review the draft profile</h2>
-    <div class="banner"><strong>Draft, unverified.</strong> Check each quote against your source, then edit or clear any field.<br><strong>Wizard-of-Oz prototype:</strong> the AI results for the three sample documents were prepared by hand to show what the future AI model will produce. The quote check and fit rating run as real code.</div>
+    <h2><span class="step">2</span>Review each fact</h2>
+    <div class="banner"><strong>Draft, unverified.</strong> Read each source sentence, then <strong>Confirm</strong> the value, edit it, or <strong>Reject</strong> it. The fit rating updates as you edit.<br><strong>Wizard-of-Oz prototype:</strong> the AI results for the four sample documents were prepared by hand to show what the future AI model will produce. The quote check, fit rating, edit flags, and review lock run as real code.</div>
     <div class="fit">
       <span class="badge" id="fitBadge"></span>
       <span class="rule" id="fitRule"></span>
     </div>
+    <div class="changed" id="fitChanged"></div>
     <div id="fields"></div>
     <h2 style="margin-top:14px"><span class="step">3</span>Copy the reviewed profile</h2>
-    <p class="hint">Copies one tab-separated row you can paste into your account spreadsheet.</p>
+    <p class="hint">Copy unlocks once every field with a value is confirmed or rejected. It copies one tab-separated row (five fields, fit rating, review note) for your account spreadsheet.</p>
     <div class="row">
-      <button class="primary" id="copy">Copy profile</button>
-      <span id="copyMsg" class="rule"></span>
+      <button class="primary" id="copy" disabled>Copy profile</button>
+      <span id="progress" class="progress"></span>
     </div>
+    <div class="rule" id="copyMsg" style="margin-top:6px"></div>
     <textarea id="copyFallback" readonly style="display:none;min-height:70px;margin-top:8px"></textarea>
   </section>
 </main>
@@ -115,6 +133,13 @@ Did you know that Lakeshore now has roughly 18,000 members? That's a lot of neig
 Remember to call 811 before you dig, and never touch a downed power line.
 Our scholarship program is accepting applications from high school seniors through April 30.
 Recipe corner: try this month's rhubarb crumble from member Joan P.`,
+
+  posting: `Job Posting: SCADA Technician, Prairie Valley Electric Membership Corporation.
+Prairie Valley EMC is a not-for-profit, member-owned electric distribution utility serving 41,000 meters in west-central Ohio.
+The SCADA Technician will maintain the SCADA system that Prairie Valley owns and operates, including RTUs at our 22 substations.
+This new position reports to Luis Ortega, Director of Engineering and Operations.
+The role was created as part of our grid modernization program, funded in part by a 2025 federal grid resilience grant.
+Benefits include health insurance, a retirement plan, and a company vehicle.`,
 
   water: `Riverbend Regional Water Authority provides drinking water and wastewater service to 145,000 customers in three counties.
 The authority operates two treatment plants and 1,100 miles of water main.
@@ -153,6 +178,21 @@ const PREPARED = {
               quotes: ["Did you know that Lakeshore now has roughly 18,000 members?"] }
     }
   },
+  posting: {
+    match: "Job Posting: SCADA Technician, Prairie Valley Electric Membership Corporation.",
+    fields: {
+      type: { value: "Electric distribution cooperative (electric membership corporation)", coop: true,
+              quotes: ["Prairie Valley EMC is a not-for-profit, member-owned electric distribution utility serving 41,000 meters in west-central Ohio."] },
+      size: { value: "41,000 meters", meters: 41000,
+              quotes: ["Prairie Valley EMC is a not-for-profit, member-owned electric distribution utility serving 41,000 meters in west-central Ohio."] },
+      scada: { value: "Owns and operates its own SCADA (RTUs at 22 substations)", scada: true,
+               quotes: ["The SCADA Technician will maintain the SCADA system that Prairie Valley owns and operates, including RTUs at our 22 substations."] },
+      leaders: { value: "Luis Ortega, Director of Engineering and Operations",
+                 quotes: ["This new position reports to Luis Ortega, Director of Engineering and Operations."] },
+      trigger: { value: "New SCADA role created under a grid modernization program funded by a 2025 federal grid resilience grant",
+                 quotes: ["The role was created as part of our grid modernization program, funded in part by a 2025 federal grid resilience grant."] }
+    }
+  },
   water: {
     match: "Riverbend Regional Water Authority provides drinking water and wastewater service to 145,000 customers in three counties.",
     fields: {
@@ -169,6 +209,7 @@ const PREPARED = {
     }
   }
 };
+
 
 const FIELDS = [
   ["type", "Utility type"],
@@ -201,26 +242,49 @@ function verifyQuotes(fields, text) {
   return { kept, flags };
 }
 
+// ---------- Real code: read the CURRENT field values (after the user's edits) ----------
+// The rating is always computed from what is on screen, so a value, its rating and the
+// copied row cannot disagree.
+function readValues() {
+  const v = {};
+  for (const [key] of FIELDS) v[key] = state[key].status === "rejected" || state[key].missing ? "" : $("f_" + key).value.trim();
+  return v;
+}
+function parseType(t) {
+  if (!t) return undefined;
+  if (/water|wastewater|natural gas|not an electric/i.test(t)) return false;
+  if (/co-?op|cooperative|membership corporation/i.test(t)) return true;
+  return false;
+}
+function parseMeters(t) {
+  if (!t) return undefined;
+  const m = t.match(/([\d][\d,\.]*)\s*(k\b|thousand)?\s*(meters|customers|accounts)/i);
+  if (!m) return null;                  // e.g. members only: meter count not stated
+  let n = parseFloat(m[1].replace(/,/g, ""));
+  if (m[2]) n *= 1000;
+  return n;
+}
+function parseScada(t) { return !!t && /scada/i.test(t) && !/\b(no|not|none)\b/i.test(t); }
+
 // ---------- Real code: fit rules ----------
 // Target profile: electric distribution co-op, 10,000-80,000 meters, runs its own SCADA.
-function rateFit(x) {
-  if (x.type && x.type.coop === false) return ["No match", "Not an electric distribution cooperative."];
-  const m = x.size ? x.size.meters : null;
-  if (m !== null && m !== undefined && (m < 10000 || m > 80000))
+function rateFit(v) {
+  const coop = parseType(v.type), m = parseMeters(v.size), scada = parseScada(v.scada);
+  if (coop === false) return ["No match", "Not an electric distribution cooperative."];
+  if (typeof m === "number" && (m < 10000 || m > 80000))
     return ["No match", `${m.toLocaleString()} meters is outside the 10,000 to 80,000 target range.`];
-
   const unknown = [];
-  if (!x.type) unknown.push("utility type");
-  if (m === null || m === undefined) unknown.push("meter count");
-  if (!(x.scada && x.scada.scada)) unknown.push("SCADA ownership");
-
+  if (coop === undefined) unknown.push("utility type");
+  if (typeof m !== "number") unknown.push("meter count");
+  if (!scada) unknown.push("SCADA ownership");
   if (unknown.length === 0) return ["Match", "Electric distribution co-op, 10,000 to 80,000 meters, runs its own SCADA."];
-  if (unknown.length === 1) return ["Partial", "Meets the known criteria; not stated in the text: " + unknown[0] + "."];
-  return ["Not enough information", "Not stated in the text: " + unknown.join(", ") + "."];
+  if (unknown.length === 1) return ["Partial", "Meets the known criteria; not stated: " + unknown[0] + "."];
+  return ["Not enough information", "Not stated: " + unknown.join(", ") + "."];
 }
 
 // ---------- UI ----------
 const $ = id => document.getElementById(id);
+let state = {}, initialFit = "";
 
 function showMsg(kind, text) { const m = $("inputMsg"); m.className = "msg " + kind; m.textContent = text; }
 function hideMsg() { const m = $("inputMsg"); m.className = "msg"; m.textContent = ""; }
@@ -242,28 +306,36 @@ function render(text) {
   const key = findPrepared(text);
   const prepared = key ? PREPARED[key].fields : {};
   const { kept, flags } = verifyQuotes(prepared, text);
-  const [fit, rule] = rateFit(kept);
 
-  if (!key) showMsg("note", "This prototype has prepared AI results only for the three sample documents. For other text, the profile below is blank so you can fill it in by hand; the future AI model will fill it automatically.");
-
-  $("fitBadge").textContent = fit;
-  $("fitBadge").className = "badge " + fit.replace(/ /g, "-");
-  $("fitRule").textContent = "Rule applied: " + rule;
+  if (!key) showMsg("note", "This prototype has prepared AI results only for the four sample documents. For other text, the profile below is blank so you can fill it in by hand; the future AI model will fill it automatically.");
 
   const box = $("fields");
   box.innerHTML = "";
+  state = {};
   for (const [fkey, label] of FIELDS) {
     const f = kept[fkey];
+    state[fkey] = { original: f ? f.value : "", missing: !f, status: "pending" };
     const div = document.createElement("div");
     div.className = "field";
     const id = "f_" + fkey;
-    div.innerHTML = `<label for="${id}">${label}</label>`;
-    const input = document.createElement("input");
-    input.id = id;
+    div.innerHTML = `<div class="fhead"><label for="${id}">${label}</label><span class="tag" id="t_${fkey}"></span></div>`;
+    const input = document.createElement("textarea");
+    input.id = id; input.rows = 1;
     input.value = f ? f.value : "Not found";
     if (!f) input.classList.add("missing");
-    input.addEventListener("focus", () => { if (input.classList.contains("missing")) { input.value = ""; input.classList.remove("missing"); } });
+    input.addEventListener("focus", () => {
+      if (input.classList.contains("missing")) { input.value = ""; input.classList.remove("missing"); state[fkey].missing = false; }
+    });
+    input.addEventListener("input", () => {
+      if (state[fkey].status !== "pending") state[fkey].status = "pending";   // any edit needs a fresh review
+      update();
+    });
+    input.addEventListener("blur", () => {
+      if (!input.value.trim() && !state[fkey].original) { input.value = "Not found"; input.classList.add("missing"); state[fkey].missing = true; update(); }
+    });
     div.appendChild(input);
+    autosize(input);
+
     if (f) {
       for (const q of f.quotes) {
         const p = document.createElement("p");
@@ -277,30 +349,79 @@ function render(text) {
       p.textContent = "No supporting sentence in the source text.";
       div.appendChild(p);
     }
+    const editFlag = document.createElement("div");
+    editFlag.className = "flag"; editFlag.id = "e_" + fkey;
+    div.appendChild(editFlag);
     if (flags[fkey]) {
       const fl = document.createElement("div");
       fl.className = "flag";
       fl.textContent = "A suggested value was removed because its source quote no longer matches the text.";
       div.appendChild(fl);
     }
+    const acts = document.createElement("div");
+    acts.className = "actions";
+    acts.innerHTML = `<button class="small confirm" id="c_${fkey}">Confirm</button><button class="small reject" id="r_${fkey}">Reject</button>`;
+    div.appendChild(acts);
     box.appendChild(div);
+    $("c_" + fkey).addEventListener("click", () => { state[fkey].status = state[fkey].status === "confirmed" ? "pending" : "confirmed"; update(); });
+    $("r_" + fkey).addEventListener("click", () => { state[fkey].status = state[fkey].status === "rejected" ? "pending" : "rejected"; update(); });
   }
+  initialFit = rateFit(readValues())[0];
   $("copyMsg").textContent = "";
   $("copyFallback").style.display = "none";
-  $("results").style.display = "block";
+  $("results").style.display = "block";   // show first so field heights can be measured
+  update();
   $("results").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+function autosize(el) { el.style.height = "auto"; el.style.height = el.scrollHeight + 2 + "px"; }
+
+// Re-runs on every edit, confirm or reject: fit rating, edit flags, review lock.
+function update() {
+  let needReview = 0, reviewed = 0;
+  for (const [key] of FIELDS) {
+    const st = state[key], el = $("f_" + key), tag = $("t_" + key), ef = $("e_" + key);
+    autosize(el);
+    const val = st.missing ? "" : el.value.trim();
+    const edited = !!st.original && val !== st.original;
+    el.classList.toggle("rejected", st.status === "rejected");
+    $("c_" + key).classList.toggle("on", st.status === "confirmed");
+    $("r_" + key).classList.toggle("on", st.status === "rejected");
+    $("c_" + key).disabled = !val;   // nothing to confirm in an empty field
+    ef.textContent = edited && st.status !== "rejected"
+      ? "You changed this value. It no longer matches the source sentence above; check that your edit is supported before confirming."
+      : (!st.original && val && st.status !== "rejected" ? "Added by you. There is no source sentence for this value." : "");
+    let label = st.status === "confirmed" ? "Confirmed" : st.status === "rejected" ? "Rejected"
+              : edited ? "Edited by you" : st.original ? "From source" : val ? "Added by you" : "Not found";
+    tag.textContent = label;
+    tag.className = "tag " + (st.status === "confirmed" ? "confirmed" : st.status === "rejected" ? "rejected" : (edited || (!st.original && val)) ? "edited" : "");
+    if (val || st.status === "rejected") { needReview++; if (st.status !== "pending") reviewed++; }
+  }
+  const [fit, rule] = rateFit(readValues());
+  $("fitBadge").textContent = fit;
+  $("fitBadge").className = "badge " + fit.replace(/ /g, "-");
+  $("fitRule").textContent = "Rule applied: " + rule;
+  $("fitChanged").textContent = fit !== initialFit ? `Rating changed from ${initialFit} after your changes.` : "";
+
+  const done = needReview > 0 && reviewed === needReview;
+  $("copy").disabled = !done;
+  $("progress").textContent = needReview === 0 ? "Add at least one value to copy a profile."
+    : done ? "All facts reviewed." : `${reviewed} of ${needReview} facts reviewed.`;
+  $("progress").className = "progress" + (done ? " done" : "");
+  $("copyMsg").textContent = "";
+}
+
 function buildRow() {
-  const vals = FIELDS.map(([key]) => {
-    const el = $("f_" + key);
-    return el.classList.contains("missing") ? "" : el.value.trim();
-  });
+  const v = readValues();
+  const vals = FIELDS.map(([key]) => v[key]);
   vals.push($("fitBadge").textContent);
+  const edits = FIELDS.filter(([k]) => state[k].original && v[k] && v[k] !== state[k].original).length;
+  vals.push("Reviewed " + new Date().toISOString().slice(0, 10) + (edits ? `; ${edits} value(s) edited by reviewer` : ""));
   return vals.join("\t");
 }
 
 async function copyProfile() {
+  if ($("copy").disabled) return;
   const row = buildRow();
   try {
     await navigator.clipboard.writeText(row);
